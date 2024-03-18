@@ -52,7 +52,7 @@ function checkForExplicitContent(query, tabId) {
             //For Sightengine API
             if (result.profanity.matches.length > 0 && result.profanity.matches != undefined) {
                 storeSearchData(query);
-                chrome.tabs.update(tabId, { url: "Pages/popup.html" });
+                chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
             }
 
             //For OpenAI API
@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.log("Email user signed in: ", user.email);
                         // Store user details in Realtime Database
                         //storeUserDetailsInRealtimeDatabase(user);
+                        chrome.tabs.create({ url: "Pages/dashboard.html" });
                     })
                     .catch((error) => {
                         console.error("Error during email sign in: ", error.message);
