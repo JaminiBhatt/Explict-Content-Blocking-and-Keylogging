@@ -98,48 +98,49 @@ document.addEventListener('DOMContentLoaded', function () {
     var googleLoginButton = document.getElementById('google-login');
     var emailLoginForm = document.getElementById('email-login'); // Get the email login form
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => {
-        if (googleLoginButton) {
-            googleLoginButton.addEventListener('click', function () {
-                var provider = new firebase.auth.GoogleAuthProvider();
-                firebase.auth().signInWithPopup(provider).then(function (result) {
-                    // Handle Google Login
-                    user = result.user;
-                    console.log("Signed in as: ", user.email);
-                    // Store the user details in Realtime Database
-                    //storeUserDetailsInRealtimeDatabase(user);
-                }).catch(function (error) {
-                    console.error("Error during sign in: ", error.message);
-                });
-            });
-        }
-    
-        if (emailLoginForm) {
-            emailLoginForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                var email = document.getElementById('email').value;
-                var password = document.getElementById('password').value;
-    
-                firebase.auth().createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        // Signed in 
-                        user = userCredential.user;
-                        console.log("Email user signed in: ", user.email);
-                        // Store user details in Realtime Database
+        .then(() => {
+            if (googleLoginButton) {
+                googleLoginButton.addEventListener('click', function () {
+                    var provider = new firebase.auth.GoogleAuthProvider();
+                    firebase.auth().signInWithPopup(provider).then(function (result) {
+                        // Handle Google Login
+                        user = result.user;
+                        console.log("Signed in as: ", user.email);
+                        // Store the user details in Realtime Database
                         //storeUserDetailsInRealtimeDatabase(user);
-                        chrome.tabs.create({ url: "Pages/dashboard.html" });
-                    })
-                    .catch((error) => {
-                        console.error("Error during email sign in: ", error.message);
+                    }).catch(function (error) {
+                        console.error("Error during sign in: ", error.message);
                     });
-            });
-        }
-    })
-    .catch((error) => {
-      console.error("Persistence setup error: ", error);
-    });
+                });
+            }
+
+            if (emailLoginForm) {
+                emailLoginForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var email = document.getElementById('email').value;
+                    var password = document.getElementById('password').value;
+
+                    firebase.auth().createUserWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            // Signed in 
+                            user = userCredential.user;
+                            console.log("Email user signed in: ", user.email);
+                            // Store user details in Realtime Database
+                            //storeUserDetailsInRealtimeDatabase(user);
+                            chrome.tabs.create({ url: "Pages/dashboard.html" });
+                        })
+                        .catch((error) => {
+                            console.error("Error during email sign in: ", error.message);
+                        });
+                });
+            }
+        })
+        .catch((error) => {
+            console.error("Persistence setup error: ", error);
+        });
 });
 
+let recentQueries = new Set();
 
 function storeSearchData(searchQuery) {
     const user = firebase.auth().currentUser;
@@ -178,19 +179,26 @@ emailjs.init("3fFul4aoW7U0gorm9");
 
 function sendEmail(userEmail, keyword) {
     // Parameters to be passed into the email template
+    var currentdate = new Date();
+    var datetime = "on: " + currentdate.getDate() + "/"
+        + (currentdate.getMonth() + 1) + "/"
+        + currentdate.getFullYear() + " (dd/mm/yyyy) @ "
+        + currentdate.getHours() + ":"
+        + currentdate.getMinutes() + ":"
+        + currentdate.getSeconds() + ".";
     var templateParams = {
         to_name: userEmail,
         from_name: 'Explict Content Management Team',
-        message: 'An explicit keyword search has been detected. Keyword is ' + keyword, //add timestamp as well
+        message: 'An explicit keyword search has been detected ' + datetime,
         user_email: userEmail
     };
 
     emailjs.send('service_6gob1pa', 'template_sx5dmcq', templateParams)
-    .then(function(response) {
-        console.log('Successfully sent email', response.status, response.text);
-    }, function(error) {
-        console.error('Failed to send email', error);
-    });
+        .then(function (response) {
+            console.log('Successfully sent email', response.status, response.text);
+        }, function (error) {
+            console.error('Failed to send email', error);
+        });
 }
 
 
