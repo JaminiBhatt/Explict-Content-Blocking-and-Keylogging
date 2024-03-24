@@ -13,55 +13,62 @@ chrome.webRequest.onBeforeRequest.addListener(
     ["blocking"]
 );
 
+let debounceTimer;
+const debounceDelay = 500; // 0.5 second
+
 function checkForExplicitContent(query, tabId) {
-    // API credentials
-    // For Sightengine API
-    const api_user = '60919021';
-    const api_secret = 'KgmaDmc35erzApQRZZZemQLoqDpcBLd6';
-    const apiEndpoint = 'https://api.sightengine.com/1.0/text/check.json';
-
-    //For OpenAI API
-    // const apiEndpoint = 'https://api.openai.com/v1/moderations';
-
-    // For Sightengine API
-    const params = new URLSearchParams();
-    params.append('text', decodeURIComponent(query));
-    params.append('mode', 'standard');
-    params.append('api_user', api_user);
-    params.append('api_secret', api_secret);
-    params.append('lang', 'en');
-
-    // Send request
-    fetch(apiEndpoint, {
-        method: 'POST',
-        headers: {
-            // For Sightengine API
-            'Content-Type': 'application/x-www-form-urlencoded'
-
-            //For OpenAI API
-            // 'Content-Type': 'application/json',
-            // 'Authorization': 'Bearer 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'
-        },
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        // API credentials
         // For Sightengine API
-        body: params
+        const api_user = '60919021';
+        const api_secret = 'KgmaDmc35erzApQRZZZemQLoqDpcBLd6';
+        const apiEndpoint = 'https://api.sightengine.com/1.0/text/check.json';
+
         //For OpenAI API
-        // body: JSON.stringify({input: query})
-    })
-        .then(response => response.json())
-        .then(result => {
-            //For Sightengine API
-            if (result.profanity.matches.length > 0 && result.profanity.matches != undefined) {
-                storeSearchData(query);
-                chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
-            }
+        // const apiEndpoint = 'https://api.openai.com/v1/moderations';
 
+        // For Sightengine API
+        const params = new URLSearchParams();
+        params.append('text', decodeURIComponent(query));
+        params.append('mode', 'standard');
+        params.append('api_user', api_user);
+        params.append('api_secret', api_secret);
+        params.append('lang', 'en');
+
+        // Send request
+        fetch(apiEndpoint, {
+            method: 'POST',
+            headers: {
+                // For Sightengine API
+                'Content-Type': 'application/x-www-form-urlencoded'
+
+                //For OpenAI API
+                // 'Content-Type': 'application/json',
+                // 'Authorization': 'Bearer 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'
+            },
+            // For Sightengine API
+            body: params
             //For OpenAI API
-            // if (result.results[0].flagged) {
-            //     chrome.tabs.update(tabId, { url: "Pages/popup.html" });
-            // }
-
+            // body: JSON.stringify({input: query})
         })
-        .catch(error => console.error('Error:', error));
+            .then(response => response.json())
+            .then(result => {
+                //For Sightengine API
+                if (result.profanity.matches.length > 0 && result.profanity.matches != undefined) {
+                    storeSearchData(query);
+                    chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
+                }
+
+                //For OpenAI API
+                // if (result.results[0].flagged) {
+                //     storeSearchData(query);
+                // chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
+                // }
+
+            })
+            .catch(error => console.error('Error:', error));
+    }, debounceDelay);
 }
 
 
@@ -127,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             console.log("Email user signed in: ", user.email);
                             // Store user details in Realtime Database
                             //storeUserDetailsInRealtimeDatabase(user);
+                            localStorage.setItem('userEmail', user.email);
                             chrome.tabs.create({ url: "Pages/dashboard.html" });
                         })
                         .catch((error) => {
@@ -141,35 +149,50 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 let recentQueries = new Set();
+const queryExpiryTime = 60000; // 1 minute
 
 function storeSearchData(searchQuery) {
     const user = firebase.auth().currentUser;
-    var currentdate = new Date();
-    var datetime = "Last Sync: " + currentdate.getDate() + "/"
-        + (currentdate.getMonth() + 1) + "/"
-        + currentdate.getFullYear() + " @ "
-        + currentdate.getHours() + ":"
-        + currentdate.getMinutes() + ":"
-        + currentdate.getSeconds();
     if (user) {
-        const searchEntry = {
-            email: user.email, // User's email
-            keyword: searchQuery, // The search keyword
-            timestamp: datetime // Firebase server timestamp
-        };
+        // Check if the query is already in the recent queries set
+        if (!recentQueries.has(searchQuery)) {
+            // Add the query to the recent queries set
+            recentQueries.add(searchQuery);
 
-        // Reference to your database path for search data
-        const dbRef = firebase.database().ref('searches');
+            // Remove the query from the set after a certain time
+            setTimeout(() => {
+                recentQueries.delete(searchQuery);
+            }, queryExpiryTime);
 
-        // Push the new search entry
-        dbRef.push(searchEntry, (error) => {
-            if (error) {
-                console.error("Data could not be saved." + error);
-            } else {
-                console.log("Data saved successfully.");
-            }
-        });
-        sendEmail(user.email, searchQuery);
+            // Store the search entry
+            var currentdate = new Date();
+            var datetime = currentdate.getDate() + "/"
+                + (currentdate.getMonth() + 1) + "/"
+                + currentdate.getFullYear() + " @ "
+                + currentdate.getHours() + ":"
+                + currentdate.getMinutes() + ":"
+                + currentdate.getSeconds();
+
+            const searchEntry = {
+                email: user.email,
+                keyword: searchQuery,
+                timestamp: datetime
+            };
+
+            // Reference to your database path for search data
+            const dbRef = firebase.database().ref('searches');
+
+            // Push the new search entry
+            dbRef.push(searchEntry, (error) => {
+                if (error) {
+                    console.error("Data could not be saved." + error);
+                } else {
+                    console.log("Data saved successfully.");
+                }
+            });
+
+            sendEmail(user.email, searchQuery);
+        }
     } else {
         console.log("User not signed in");
     }
@@ -189,7 +212,7 @@ function sendEmail(userEmail, keyword) {
     var templateParams = {
         to_name: userEmail,
         from_name: 'Explict Content Management Team',
-        message: 'An explicit keyword search has been detected ' + datetime,
+        message: 'An inappropriate keyword search has been detected ' + datetime + 'Please visit Explicit content blocking and keylogging dashboard.',
         user_email: userEmail
     };
 
@@ -200,8 +223,3 @@ function sendEmail(userEmail, keyword) {
             console.error('Failed to send email', error);
         });
 }
-
-
-
-
-
