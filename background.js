@@ -209,7 +209,7 @@ function sendEmail(userEmail, keyword) {
     var templateParams = {
         to_name: userEmail,
         from_name: 'Explict Content Management Team',
-        message: 'An inappropriate keyword search has been detected ' + datetime + 'Please visit Explicit content blocking and keylogging dashboard.',
+        message: 'An inappropriate keyword search has been detected ' + datetime + '\nPlease visit Explicit content blocking and keylogging dashboard.',
         user_email: userEmail
     };
 
