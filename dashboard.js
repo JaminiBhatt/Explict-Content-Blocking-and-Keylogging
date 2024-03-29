@@ -1,4 +1,3 @@
-
 // Initialize Firebase
 var firebaseConfig = {
     apiKey: "AIzaSyCQ07adUcy3bBrWk7nB3Yd2jOKIyM6lHk0",
@@ -64,8 +63,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('timestampSortIcon').addEventListener('click', sortTableByTimestamp);
 });
 
-
-
 var sortAscending = true; // Global variable to toggle sorting order
 
 function sortTableByTimestamp() {
@@ -102,3 +99,6 @@ function sortTableByTimestamp() {
     }
     sortAscending = !sortAscending; // Toggle the sorting order for the next click
 }
+
+
+

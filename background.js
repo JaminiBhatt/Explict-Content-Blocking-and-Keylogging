@@ -13,62 +13,55 @@ chrome.webRequest.onBeforeRequest.addListener(
     ["blocking"]
 );
 
-let debounceTimer;
-const debounceDelay = 500; // 0.5 second
-
 function checkForExplicitContent(query, tabId) {
-    // clearTimeout(debounceTimer);
-    // debounceTimer = setTimeout(() => {
-        // API credentials
-        // For Sightengine API
-        // const api_user = '60919021';
-        // const api_secret = 'KgmaDmc35erzApQRZZZemQLoqDpcBLd6';
-        // const apiEndpoint = 'https://api.sightengine.com/1.0/text/check.json';
+    // API credentials
+    // For Sightengine API
+    const api_user = '60919021';
+    const api_secret = 'KgmaDmc35erzApQRZZZemQLoqDpcBLd6';
+    const apiEndpoint = 'https://api.sightengine.com/1.0/text/check.json';
 
-        //For OpenAI API
-        const apiEndpoint = 'https://api.openai.com/v1/moderations';
+    //For OpenAI API
+    // const apiEndpoint = 'https://api.openai.com/v1/moderations';
 
-        // For Sightengine API
-        // const params = new URLSearchParams();
-        // params.append('text', decodeURIComponent(query));
-        // params.append('mode', 'standard');
-        // params.append('api_user', api_user);
-        // params.append('api_secret', api_secret);
-        // params.append('lang', 'en');
+    // For Sightengine API
+    const params = new URLSearchParams();
+    params.append('text', decodeURIComponent(query));
+    params.append('mode', 'standard');
+    params.append('api_user', api_user);
+    params.append('api_secret', api_secret);
+    params.append('lang', 'en');
 
-        // Send request
-        fetch(apiEndpoint, {
-            method: 'POST',
-            headers: {
-                // For Sightengine API
-                // 'Content-Type': 'application/x-www-form-urlencoded'
-
-                //For OpenAI API
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer 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'
-            },
+    // Send request
+    fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
             // For Sightengine API
-            // body: params
+            'Content-Type': 'application/x-www-form-urlencoded'
+
             //For OpenAI API
-            body: JSON.stringify({ input: query })
+            // 'Content-Type': 'application/json',
+            // 'Authorization': 'Bearer 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'
+        },
+        // For Sightengine API
+        body: params
+        //For OpenAI API
+        // body: JSON.stringify({ input: query })
+    })
+        .then(response => response.json())
+        .then(result => {
+            //For Sightengine API
+            if (result.profanity.matches.length > 0 && result.profanity.matches != undefined) {
+                storeSearchData(query);
+                chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
+            }
+
+            //For OpenAI API
+            // if (result.results[0].flagged) {
+            //     storeSearchData(query);
+            //     chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
+            // }
         })
-            .then(response => response.json())
-            .then(result => {
-                //For Sightengine API
-                // if (result.profanity.matches.length > 0 && result.profanity.matches != undefined) {
-                //     storeSearchData(query);
-                //     chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
-                // }
-
-                //For OpenAI API
-                if (result.results[0].flagged) {
-                    storeSearchData(query);
-                    chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
-                }
-
-            })
-            .catch(error => console.error('Error:', error));
-    // }, debounceDelay);
+        .catch(error => console.error('Error:', error));
 }
 
 //Login JS
@@ -99,24 +92,24 @@ var database = firebase.database();
 var user = "";
 
 document.addEventListener('DOMContentLoaded', function () {
-    var googleLoginButton = document.getElementById('google-login');
+    //var googleLoginButton = document.getElementById('google-login');
     var emailLoginForm = document.getElementById('email-login'); // Get the email login form
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
         .then(() => {
-            if (googleLoginButton) {
-                googleLoginButton.addEventListener('click', function () {
-                    var provider = new firebase.auth.GoogleAuthProvider();
-                    firebase.auth().signInWithPopup(provider).then(function (result) {
-                        // Handle Google Login
-                        user = result.user;
-                        console.log("Signed in as: ", user.email);
-                        // Store the user details in Realtime Database
-                        //storeUserDetailsInRealtimeDatabase(user);
-                    }).catch(function (error) {
-                        console.error("Error during sign in: ", error.message);
-                    });
-                });
-            }
+            // if (googleLoginButton) {
+            //     googleLoginButton.addEventListener('click', function () {
+            //         var provider = new firebase.auth.GoogleAuthProvider();
+            //         firebase.auth().signInWithPopup(provider).then(function (result) {
+            //             // Handle Google Login
+            //             user = result.user;
+            //             console.log("Signed in as: ", user.email);
+            //             // Store the user details in Realtime Database
+            //             //storeUserDetailsInRealtimeDatabase(user);
+            //         }).catch(function (error) {
+            //             console.error("Error during sign in: ", error.message);
+            //         });
+            //     });
+            // }
 
             if (emailLoginForm) {
                 emailLoginForm.addEventListener('submit', function (e) {
@@ -129,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             // Signed in 
                             user = userCredential.user;
                             console.log("Email user signed in: ", user.email);
+
                             // Store user details in Realtime Database
                             //storeUserDetailsInRealtimeDatabase(user);
                             localStorage.setItem('userEmail', user.email);
@@ -136,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         })
                         .catch((error) => {
                             console.error("Error during email sign in: ", error.message);
+                            alert(error.message);
                         });
                 });
             }
