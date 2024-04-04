@@ -16,50 +16,51 @@ chrome.webRequest.onBeforeRequest.addListener(
 function checkForExplicitContent(query, tabId) {
     // API credentials
     // For Sightengine API
-    const api_user = '60919021';
-    const api_secret = 'KgmaDmc35erzApQRZZZemQLoqDpcBLd6';
-    const apiEndpoint = 'https://api.sightengine.com/1.0/text/check.json';
+    // const api_user = '60919021';
+    // const api_secret = 'KgmaDmc35erzApQRZZZemQLoqDpcBLd6';
+    // const apiEndpoint = 'https://api.sightengine.com/1.0/text/check.json';
 
     //For OpenAI API
-    // const apiEndpoint = 'https://api.openai.com/v1/moderations';
+    const apiEndpoint = 'https://api.openai.com/v1/moderations';
+    const tokenKey = API_CONFIG.OPENAI_SECRET;
 
     // For Sightengine API
-    const params = new URLSearchParams();
-    params.append('text', decodeURIComponent(query));
-    params.append('mode', 'standard');
-    params.append('api_user', api_user);
-    params.append('api_secret', api_secret);
-    params.append('lang', 'en');
+    // const params = new URLSearchParams();
+    // params.append('text', decodeURIComponent(query));
+    // params.append('mode', 'standard');
+    // params.append('api_user', api_user);
+    // params.append('api_secret', api_secret);
+    // params.append('lang', 'en');
 
     // Send request
     fetch(apiEndpoint, {
         method: 'POST',
         headers: {
             // For Sightengine API
-            'Content-Type': 'application/x-www-form-urlencoded'
+            // 'Content-Type': 'application/x-www-form-urlencoded'
 
             //For OpenAI API
-            // 'Content-Type': 'application/json',
-            // 'Authorization': 'Bearer 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'
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + tokenKey
         },
         // For Sightengine API
-        body: params
+        // body: params
         //For OpenAI API
-        // body: JSON.stringify({ input: query })
+        body: JSON.stringify({ input: query })
     })
         .then(response => response.json())
         .then(result => {
             //For Sightengine API
-            if (result.profanity.matches.length > 0 && result.profanity.matches != undefined) {
-                storeSearchData(query);
-                chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
-            }
-
-            //For OpenAI API
-            // if (result.results[0].flagged) {
+            // if (result.profanity.matches.length > 0 && result.profanity.matches != undefined) {
             //     storeSearchData(query);
             //     chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
             // }
+
+            //For OpenAI API
+            if (result.results[0].flagged) {
+                storeSearchData(query);
+                chrome.tabs.update(tabId, { url: "Pages/blockedpage.html" });
+            }
         })
         .catch(error => console.error('Error:', error));
 }
