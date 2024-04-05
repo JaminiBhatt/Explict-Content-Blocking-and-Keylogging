@@ -1,15 +1,17 @@
-// Initialize Firebase
+//Firebase configuration
 var firebaseConfig = {
-    apiKey: "AIzaSyCQ07adUcy3bBrWk7nB3Yd2jOKIyM6lHk0",
-    authDomain: "webextension-f0f9c.firebaseapp.com",
-    databaseURL: "https://webextension-f0f9c-default-rtdb.firebaseio.com",
-    projectId: "webextension-f0f9c",
-    storageBucket: "webextension-f0f9c.appspot.com",
-    messagingSenderId: "67980485197",
-    appId: "1:67980485197:web:6d9cbc3d4eaa97e8287204",
-    measurementId: "G-HJFZ3EN0JG"
+    apiKey: API_CONFIG.apiKey,
+    authDomain: API_CONFIG.authDomain,
+    databaseURL: API_CONFIG.databaseURL,
+    projectId: API_CONFIG.projectId,
+    storageBucket: API_CONFIG.storageBucket,
+    messagingSenderId: API_CONFIG.messagingSenderId,
+    appId: API_CONFIG.appId,
+    measurementId: API_CONFIG.measurementId
 };
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 var database = firebase.database();
 
 // Function to retrieve and display log information
@@ -60,7 +62,10 @@ function displayLogInfo() {
 // Call the function when the page loads
 document.addEventListener('DOMContentLoaded', function () {
     displayLogInfo();
-    document.getElementById('timestampSortIcon').addEventListener('click', sortTableByTimestamp);
+    var timestampSortIcon = document.getElementById('timestampSortIcon');
+    if (timestampSortIcon) {
+        timestampSortIcon.addEventListener('click', sortTableByTimestamp);
+    }
 });
 
 var sortAscending = true; // Global variable to toggle sorting order

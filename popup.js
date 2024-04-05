@@ -1,20 +1,18 @@
-// document.getElementById('openDashboard').addEventListener('click', function() {
-//     chrome.tabs.create({ url: "Pages/dashboard.html" });
-// });
-
-// Initialize Firebase
+//Firebase configuration
 var firebaseConfig = {
-    apiKey: "AIzaSyCQ07adUcy3bBrWk7nB3Yd2jOKIyM6lHk0",
-    authDomain: "webextension-f0f9c.firebaseapp.com",
-    databaseURL: "https://webextension-f0f9c-default-rtdb.firebaseio.com",
-    projectId: "webextension-f0f9c",
-    storageBucket: "webextension-f0f9c.appspot.com",
-    messagingSenderId: "67980485197",
-    appId: "1:67980485197:web:6d9cbc3d4eaa97e8287204",
-    measurementId: "G-HJFZ3EN0JG"
+    apiKey: API_CONFIG.apiKey,
+    authDomain: API_CONFIG.authDomain,
+    databaseURL: API_CONFIG.databaseURL,
+    projectId: API_CONFIG.projectId,
+    storageBucket: API_CONFIG.storageBucket,
+    messagingSenderId: API_CONFIG.messagingSenderId,
+    appId: API_CONFIG.appId,
+    measurementId: API_CONFIG.measurementId
 };
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+auth = firebase.auth();
 
 // Function to validate email and password
 function validateCredentials() {
@@ -32,29 +30,24 @@ function validateCredentials() {
             document.getElementById('openDashboard').disabled = true;
             var errorCode = error.code;
             var errorMessage = error.message;
-            // You can handle the error here, such as displaying a message to the user
             console.error("Error signing in: ", errorCode, errorMessage);
         });
 }
 
 
-// // Event listener for the input fields to enable or disable the button based on validation
-// document.getElementById('email').addEventListener('input', function () {
-//     document.getElementById('openDashboard').disabled = !validateCredentials();
-// });
+document.addEventListener('DOMContentLoaded', function () {
+    var submitButton = document.getElementById('submitCredentials');
+    if (submitButton) {
+        submitButton.addEventListener('click', function () {
+            validateCredentials();
+        });
+    }
 
-// document.getElementById('password').addEventListener('input', function () {
-//     document.getElementById('openDashboard').disabled = !validateCredentials();
-// });
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Event listener for the "Submit" button
-    document.getElementById('submitCredentials').addEventListener('click', function() {
-        validateCredentials();
-    });
-
-    // Event listener for the "Open Dashboard" button
-    document.getElementById('openDashboard').addEventListener('click', function() {
-        chrome.tabs.create({ url: "Pages/dashboard.html" });
-    });
+    var openDashboardButton = document.getElementById('openDashboard');
+    if (openDashboardButton) {
+        openDashboardButton.addEventListener('click', function () {
+            chrome.tabs.create({ url: "Pages/dashboard.html" });
+        });
+    }
 });
+
