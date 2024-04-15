@@ -14,6 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../dashboard.js"></script>
     <style>
         /* Custom Css */
@@ -62,7 +63,7 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 90%;
             margin: 0 auto;
             padding: 20px;
         }
@@ -117,26 +118,43 @@
 
 <body>
     <div class="container">
-        <h3 style="text-align: center;color: #1b5da3">Explicit Keywords Searched</h1>
-            <div class="card login-form">
-                <div class="card-body">
-                    <table id="logTable">
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>Keyword</th>
-                                <!-- <th>Timestamp</th> -->
-                                <th>Timestamp <i class="fas fa-sort" style="cursor: pointer;"
-                                        id="timestampSortIcon"></i></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Log entries will be added here -->
-                        </tbody>
-                    </table>
+        <h3 style="text-align: center;color: #1b5da3">Explicit Keywords Searched</h3>
+            <div class="row">
+
+                <div class="col-md-6">
+                    
+                    <div class="card login-form">
+                        <div class="card-body">
+                            <h5 id="emptyMessage" style="text-align: center;color: #1b5da3;">No trends detected yet</h5>
+                            <canvas id="keywordGraph" style="width: 100%; height: 400px;"></canvas>
+                        </div>
+                    </div>
                 </div>
+                <div class="col-md-6">
+                    <div class="card login-form">
+                        <div class="card-body">
+                            <table id="logTable">
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Keyword</th>
+                                        <!-- <th>Timestamp</th> -->
+                                        <th>Timestamp <i class="fas fa-sort" style="cursor: pointer;"
+                                                id="timestampSortIcon"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Log entries will be added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+
     </div>
+    
 </body>
 
 </html>
